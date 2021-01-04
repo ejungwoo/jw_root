@@ -18,6 +18,8 @@ class ehist : public edrawing
     ebinning  fBinny;
     TObjArray fHistArray;
 
+    double fParameters[10] = {0};
+
     double fXTitleOffset = 1.3;
     double fYTitleOffset = 1.7;
     double fZTitleOffset = -0.2;
@@ -39,8 +41,16 @@ class ehist : public edrawing
   public:
     ehist(TH1 *hist, const char *option);
     ehist(const char *name, const char *ttl, const char *expr, const char *sel, ebinning binnx, ebinning binny, const char *opt);
-    ehist(const char *name, const char *ttl, const char *expr, const char *sel, int nx, double x1, double x2, int ny=0, double y1=0, double y2=0, const char *opt="")
+
+    ehist(const char *name, const char *ttl, const char *expr, const char *sel, int nx, double x1, double x2, int ny, double y1, double y2, const char *opt="")
     : ehist(name, ttl, expr, sel, ebinning(nx,x1,x2), ebinning(ny,y1,y2), opt) {}
+
+    ehist(const char *name, const char *ttl, const char *expr, const char *sel, ebinning binnx, const char *opt="")
+    : ehist(name, ttl, expr, sel, binnx, ebinning(), opt) {}
+
+    ehist(const char *name, const char *ttl, const char *expr, const char *sel, int nx, double x1, double x2, const char *opt="")
+    : ehist(name, ttl, expr, sel, ebinning(nx,x1,x2), ebinning(), opt) {}
+
     ehist(const char *name, const char *ttl, int nx=0, double x1=0, double x2=0, int ny=0, double y1=0, double y2=0)
     : ehist(name, ttl, name, "", ebinning(nx,x1,x2), ebinning(ny,y1,y2), "") {}
 
@@ -71,7 +81,17 @@ class ehist : public edrawing
     void setBinnx      (ebinning val) { fBinnx = val; }
     void setBinny      (ebinning val) { fBinny = val; }
 
+    void setTitle      (TString  val, int ttlIndex);
+    void setMainTitle  (TString  val) { setTitle(val, 0); }
+    void setXTitle     (TString  val) { setTitle(val, 1); }
+    void setYTitle     (TString  val) { setTitle(val, 2); }
+    void setZTitle     (TString  val) { setTitle(val, 3); }
+
+    void setPar(int idx, double val) { fParameters[idx] = val; }
+
     TH1 *make(TTree *tree=nullptr);
+
+    ClassDef(ehist,0)
 };
 
 #endif

@@ -40,6 +40,7 @@ class eoption : public TObjArray
     eoption(const char *val="");
 
     bool    findOption(TString opt);
+    TString getData()               const;
     int     getNumOptions()         const;
     TString getOption(int idx=-1)   const;
     TString getValue (int idx=-1)   const;
@@ -53,6 +54,8 @@ class eoption : public TObjArray
     const char *print(bool printout=true) const;
 
     //void operator=(const char *val);
+
+    ClassDef(eoption,0);
 };
 
 #endif

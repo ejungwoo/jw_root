@@ -27,7 +27,8 @@ class ecanvas : public TObjArray
     double fLMargin = 0.19;
     double fRMargin = 0.155;
     double fBMargin = 0.17;
-    double fTMargin = 0.18;
+    //double fTMargin = 0.18;
+    double fTMargin = 0.10;
 
     int fNumDivXY[81][2] = {
       {1,1},{1,1},{2,1},{3,1},
@@ -68,8 +69,11 @@ class ecanvas : public TObjArray
     TPad *getCanvas() { return fPad; }
 
   public:
+    void setPadMargin(int option);
+    void setPadMargin(double lMargin, double rMargin, double bMargin, double tMargin);
+    void applyPadMargin(TPad *pad=nullptr);
+
     void setPad(TPad *pad);
-    void setPadMargin(TPad *pad=nullptr);
     void getNextPadInfo(int numPads, int &numDivX, int &numDivY, int &padSizeX, int &padSizeY);
     void dividePad(int numDivX, int numDivY, double xMargin=0.001, double yMargin=0.001);
     edrawing *getFrame();
@@ -79,7 +83,7 @@ class ecanvas : public TObjArray
   private:
     edrawing *makeDrawing (TObject *obj, TString option);
 
-    void findOptions(TString option);
+    void applyOptions(TString option);
     void setRMarginForLegend(double dxLegend);
     void setTMarginForLegend(double dyLegend);
 

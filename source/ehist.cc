@@ -26,13 +26,15 @@ void ehist::configureParameters() {
 
 void ehist::configureDrawOption() {
   fDrawOption = fOptionString.getDrawOption();
-  if (fOptionString.findOption("setStat")) fSetStats = fOptionString.getValueB();
+  if (fOptionString.findOption("setstat")) fSetStats = fOptionString.getValueB();
   if (fDrawOption.IsNull()) fDrawOption = "hist";
   fDrawOption += " same";
 }
 
 void ehist::configureRange() {
   auto hist = (TH1 *) fObject;
+  if (hist==nullptr)
+    return;
   fX1Range = fBinnx.getMin();
   fX2Range = fBinnx.getMax();
   fY1Range = fBinny.getMin();
@@ -41,6 +43,9 @@ void ehist::configureRange() {
 
 void ehist::configureAttributes() {
   auto hist = (TH1 *) fObject;
+  if (hist==nullptr)
+    return;
+
   auto xaxis = hist -> GetXaxis();
   auto yaxis = hist -> GetYaxis();
   auto zaxis = hist -> GetZaxis();
@@ -56,6 +61,10 @@ void ehist::configureAttributes() {
   xaxis -> SetLabelSize   (fXLabelSize  ); 
   yaxis -> SetLabelSize   (fYLabelSize  ); 
   zaxis -> SetLabelSize   (fZLabelSize  ); 
+
+  hist -> GetXaxis() -> SetNdivisions(506);
+  hist -> GetYaxis() -> SetNdivisions(506);
+  hist -> GetZaxis() -> SetNdivisions(506);
 }
 
 TString ehist::getNewHistName() {
@@ -83,6 +92,30 @@ void ehist::actionBeforeDraw()
   hist -> SetStats(fSetStats);
 }
 
+void ehist::setTitle(TString val, int ttlIndex)
+{
+  TString ttl0 = fTitle;
+  TString ttls[4] = {"","","",""};
+
+  if (ttl0.Index(";")<0)
+    ttls[1] = ttl0;
+  else {
+    auto idxsc = 0;
+    for (auto i=0; i<4; ++i) {
+      idxsc = ttl0.Index(";");
+      if (idxsc<0) {
+        ttls[i] = ttl0;
+        break;
+      }
+      ttls[i] = ttl0(0,idxsc);
+      ttl0 = ttl0(idxsc+1,ttl0.Sizeof());
+    }
+  }
+
+  ttls[ttlIndex] = val;
+  fTitle = ttls[0] + ";" + ttls[1] + ";" + ttls[2] + ";" + ttls[3];
+}
+
 TH1 *ehist::make(TTree *tree)
 {
   TH1 *hist = nullptr;
@@ -94,9 +127,16 @@ TH1 *ehist::make(TTree *tree)
   else                 hist = new TH2D(name,fTitle,fBinnx.getN(),fBinnx.getMin(),fBinnx.getMax(),fBinny.getN(),fBinny.getMin(),fBinny.getMax());
 
   if (tree!=nullptr) {
-    tree -> Project(name,fExpression,fSelection);
+    TString exprFinal = fExpression;
+    for (auto i=0; i<10; ++i) {
+      TString parString = Form("[%d]",i);
+      if (exprFinal.Index(parString)>0) {
+        exprFinal.ReplaceAll(parString,Form("%f",fParameters[i]));
+      }
+    }
+    tree -> Project(name,exprFinal,fSelection);
     if (fBinny.isNull())
-      fBinnx.set(1, hist->GetMinimum(), hist->GetMaximum());
+      fBinny.set(1, hist->GetMinimum(), hist->GetMaximum());
   }
 
   fHistArray.Add(hist);
@@ -109,10 +149,10 @@ TH1 *ehist::make(TTree *tree)
 
 const char *ehist::print(bool printout) const
 {
-  TString val = fName;
-  if (!fTitle.IsNull()) val = val+"  "+GetTitle();
-  val = val+"  "+fBinnx.print(false);
-  if (!fBinny.isNull()) val = val+"  "+fBinny.print(false);
+  TString val = fName+",  "+fTitle+",  "+fOptionString.getData();
+  val = val+",  "+fBinnx.print(0);
+  if (!fBinny.isNull())
+    val = val+",  "+fBinny.print(0);
 
   if (printout) cout_info << val << endl;
   return val;

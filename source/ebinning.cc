@@ -39,13 +39,19 @@ ebinning::ebinning(TGraph *graph, int i)
   fW = (fMax-fMin)/fN;
 }
 
+void ebinning::init()
+{
+       if (fW>0&&fN<1) setW(fW);
+  else if (fN>0&&fW<1) setN(fN);
+}
+
 
 void ebinning::set(double n, double min, double max)
 {
   fN = n;
   fMin = min;
   fMax = max;
-  init();
+  fW = (fMax-fMin)/fN;
 }
 
 TString ebinning::print(bool pout) const

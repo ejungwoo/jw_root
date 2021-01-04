@@ -68,7 +68,8 @@ edrawing *ecanvas::addDrawing(int idxPad, TObject *obj, TString option, bool isF
     fNumDaughters = fDaughterECanvasArray -> GetEntries();
   }
   else {
-    findOptions(option);
+    option = option + "," + drawing -> getOption();
+    applyOptions(option);
     //if (isFrame || drawing->getSortIndex()==0)
     //  fFrame = drawing;
     //else
@@ -130,7 +131,6 @@ TPad *ecanvas::draw(TPad *pad)
   auto numDrawings = GetEntries();
   if (numDrawings!=1) {
     getFrame();
-    kb_debug << fName << endl;
     fFrame -> draw();
   }
 
@@ -154,7 +154,17 @@ void ecanvas::setPad(TPad *pad) {
   fPad = pad;
 }
 
-void ecanvas::setPadMargin(TPad *pad) {
+void ecanvas::setPadMargin(int option) {
+}
+
+void ecanvas::setPadMargin(double lMargin, double rMargin, double bMargin, double tMargin) {
+  fLMargin = lMargin;
+  fRMargin = rMargin;
+  fBMargin = bMargin;
+  fTMargin = tMargin;
+}
+
+void ecanvas::applyPadMargin(TPad *pad) {
   if (pad==nullptr) pad = fPad;
   if (pad!=nullptr) {
     pad -> SetMargin(fLMargin, fRMargin, fBMargin, fTMargin);
@@ -165,8 +175,8 @@ void ecanvas::setPadMargin(TPad *pad) {
 
 void ecanvas::getNextPadInfo(int numPads, int &numDivX, int &numDivY, int &padSizeX, int &padSizeY)
 {
-  padSizeX = 600;
-  padSizeY = 500;
+  int padSizeX0 = 600;
+  int padSizeY0 = 500;
   numDivX = fNumDivXY[numPads][0];
   numDivY = fNumDivXY[numPads][1];
 
@@ -176,14 +186,13 @@ void ecanvas::getNextPadInfo(int numPads, int &numDivX, int &numDivY, int &padSi
   gVirtualX -> GetWindowSize(gClient->GetRoot()->GetId(),dummyX,dummryY,mornitorSizeX,mornitorSizeY);
   delete cvsdummy;
 
-  auto padSizeXScaled = padSizeX*numDivX;
+  auto padSizeXScaled = padSizeX0*numDivX;
   while (padSizeXScaled>mornitorSizeX) padSizeXScaled -= 10;
-  padSizeY = padSizeY * (double(padSizeXScaled)/padSizeX);
-  padSizeX = padSizeXScaled;
 
-  auto padSizeYScaled = padSizeY*numDivY;
+  auto padSizeYScaled = double(padSizeXScaled) * padSizeY0 / padSizeX0;
   while (padSizeYScaled>mornitorSizeY) padSizeYScaled -= 10;
-  padSizeX = padSizeX * (double(padSizeYScaled)/padSizeY);
+
+  padSizeX = padSizeXScaled;
   padSizeY = padSizeYScaled;
 }
 
@@ -192,7 +201,7 @@ void ecanvas::dividePad(int numDivX, int numDivY, double xMargin, double yMargin
   fPad -> Divide(numDivX,numDivY,xMargin,yMargin);
   for (auto iBranch=1; iBranch<=(numDivX*numDivY); ++iBranch) {
     auto pad = (TPad *)(fPad -> cd(iBranch));
-    setPadMargin(pad);
+    applyPadMargin(pad);
   }
 }
 
@@ -244,24 +253,24 @@ const char *ecanvas::print(bool printout) const
   return val;
 }
 
-void ecanvas::findOptions(TString option)
+void ecanvas::applyOptions(TString option)
 {
-  auto optionManager = estring(option);
+  auto opts = eoption(option);
 
-  /**/ if (optionManager.findOption("legendrt")) fLegendAlign = 88;
-  else if (optionManager.findOption("legendlt")) fLegendAlign = 8;
-  else if (optionManager.findOption("legendlb")) fLegendAlign = 0;
-  else if (optionManager.findOption("legendrb")) fLegendAlign = 80;
-  else if (optionManager.findOption("legendrrt")) fLegendAlign = 98;
-  else if (optionManager.findOption("legendrrb")) fLegendAlign = 90;
+  /**/ if (opts.findOption("legendrt"))  fLegendAlign = 88;
+  else if (opts.findOption("legendlt"))  fLegendAlign = 8;
+  else if (opts.findOption("legendlb"))  fLegendAlign = 0;
+  else if (opts.findOption("legendrb"))  fLegendAlign = 80;
+  else if (opts.findOption("legendrrt")) fLegendAlign = 98;
+  else if (opts.findOption("legendrrb")) fLegendAlign = 90;
 
-  /**/ if (optionManager.findOption("gridx")) fGridX = true;
-  else if (optionManager.findOption("gridy")) fGridY = true;
+  /**/ if (opts.findOption("gridx")) fGridX = opts.getValueB();
+  else if (opts.findOption("gridy")) fGridY = opts.getValueB();
 
-  /**/ if (optionManager.findOption("logx")) fLogX = true;
-  else if (optionManager.findOption("logy")) fLogY = true;
-  else if (optionManager.findOption("logz")) fLogZ = true;
+  /**/ if (opts.findOption("logx")) fLogX = opts.getValueB();
+  else if (opts.findOption("logy")) fLogY = opts.getValueB();
+  else if (opts.findOption("logz")) fLogZ = opts.getValueB();
 }
 
-void ecanvas::setRMarginForLegend(double dxLegend) { fRMargin = dxLegend; setPadMargin(); }
-void ecanvas::setTMarginForLegend(double dyLegend) { fTMargin = dyLegend; setPadMargin(); }
+void ecanvas::setRMarginForLegend(double dxLegend) { fRMargin = dxLegend; applyPadMargin(); }
+void ecanvas::setTMarginForLegend(double dyLegend) { fTMargin = dyLegend; applyPadMargin(); }

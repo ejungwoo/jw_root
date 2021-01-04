@@ -5,13 +5,13 @@
 #include "TLegend.h"
 #include "TObject.h"
 
-#include "estring.hh"
+#include "eoption.hh"
 
 class edrawing : public TNamed
 {
   protected:
     TObject *fObject;
-    estring fOptionString;
+    eoption fOptionString;
     int fPadIndex = -1;
     int fSortIndex = 0;
     bool fRanged = true;
@@ -32,7 +32,7 @@ class edrawing : public TNamed
     void init();
 
     /// set options : rank, legend, range, att
-    /// @param[in] option following \ref estring option format
+    /// @param[in] option following \ref eoption option format
     ///   - frame : the object is set as frame
     ///   - rank=value : the object is set as (value)th rank drawing. rank=0 is frame. default rank is 1
     ///   - legend=1/0 : add to legend
@@ -44,6 +44,7 @@ class edrawing : public TNamed
     void setSortIndex(int idx) { fSortIndex = idx; }
 
     TObject *getObject() const { return fObject; }
+    TString getOption() const { return fOptionString.getData(); }
     int getPadIndex() const { return fPadIndex; }
     int getSortIndex() const { return fSortIndex; }
     double getX1Range() const { return fX1Range; }

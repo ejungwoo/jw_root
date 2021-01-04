@@ -23,7 +23,7 @@ class ebinning
     ebinning(TGraph *graph, int i=1);
     ~ebinning() {}
 
-     void init()                       { if (fW>0&&fN<1) setW(fN); else if (fN>0&&fW<1) setN(fW); }
+     void init();
 
      bool isNull()               const { if (fN<1||(fMin==0&&fMax==0)) return true; return false; }
 

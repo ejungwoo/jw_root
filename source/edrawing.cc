@@ -17,7 +17,8 @@ edrawing::edrawing(const char *name, const char *title, TObject *obj, TString op
   init();
 }
 
-void edrawing::init() {
+void edrawing::init()
+{
   configureParameters();
   configureBasicOption();
   configureDrawOption();
@@ -25,15 +26,28 @@ void edrawing::init() {
   if (fApplyAttributes) configureAttributes();
 }
 
-void edrawing::setOption(TString option) { fOptionString = estring(option); init(); }
-void edrawing::addOption(TString option) { fOptionString = estring(option); init(); }
+void edrawing::setOption(TString option)
+{
+  fOptionString = eoption(option);
+  configureBasicOption();
+  configureDrawOption();
+}
+
+void edrawing::addOption(TString option)
+{
+  option = fOptionString.getData() + "," + option;
+  fOptionString = eoption(option);
+  configureBasicOption();
+  configureDrawOption();
+}
+
 
 void edrawing::configureBasicOption() {
   /**/ if (fOptionString.findOption("frame")) fSortIndex = 0;
   else if (fOptionString.findOption("rank")) fSortIndex = fOptionString.getValueI();
   else fSortIndex = 1;
 
-  if (fOptionString.findOption("legend")) fAddToLegend     = fOptionString.getValueB();
+  if (fOptionString.findOption("addtol")) fAddToLegend     = fOptionString.getValueB();
   if (fOptionString.findOption("range") ) fFindRange       = fOptionString.getValueB();
   if (fOptionString.findOption("att")   ) fApplyAttributes = fOptionString.getValueB();
 
@@ -41,7 +55,7 @@ void edrawing::configureBasicOption() {
 }
 
 const char *edrawing::print(bool printout) const {
-  TString val = fName+"  "+fTitle;
+  TString val = fName+"  "+fTitle+"  "+fOptionString.getData();
   if (printout) cout_info << val << endl;
   return val;
 }
