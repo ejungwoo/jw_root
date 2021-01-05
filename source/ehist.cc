@@ -19,16 +19,48 @@ ehist::ehist(const char *name, const char *title, const char *expression, const 
   if (fExpression.IsNull()) fExpression = fName;
 }
 
+ehist::ehist(ehist *hist1, ehist *hist2)
+: edrawing((TObject*) nullptr)
+{
+  auto hxName  = hist1 -> getName();
+  auto hxExpr  = hist1 -> getExpression();
+  auto hxSel   = hist1 -> getSelection();
+  auto hxBinnx = hist1 -> getBinnx();
+  auto hxBinny = hist1 -> getBinny();
+
+  auto hyName  = hist2 -> getName();
+  auto hyExpr  = hist2 -> getExpression();
+  auto hySel   = hist2 -> getSelection();
+  auto hyBinnx = hist2 -> getBinnx();
+  auto hyBinny = hist2 -> getBinny();
+
+  TString dumm, ttlm, ttlx, ttly;
+  hist1 -> getTitles(ttlm, ttlx, dumm, dumm);
+  hist2 -> getTitles(dumm, ttly, dumm, dumm);
+
+  fName = hxName + "_VS_" + hyName;
+  fExpression = hyExpr + ":" + hxExpr;
+  fSelection = hxSel;
+  fTitle = ttlm + ";" + ttlx + ";" + ttly;
+  fBinnx = hxBinnx;
+  fBinny = hyBinnx;
+}
+
 void ehist::configureParameters() {
-  fName = fObject -> GetName();
-  fTitle = fObject -> GetTitle();
 }
 
 void ehist::configureDrawOption() {
   fDrawOption = fOptionString.getDrawOption();
   if (fOptionString.findOption("setstat")) fSetStats = fOptionString.getValueB();
-  if (fDrawOption.IsNull()) fDrawOption = "hist";
-  fDrawOption += " same";
+
+  if (fDrawOption.IsNull()) {
+    if (fHistIs2D)
+      fDrawOption += " colz";
+    else {
+      fDrawOption = "hist";
+      fDrawOption += " same";
+    }
+  }
 }
 
 void ehist::configureRange() {
@@ -92,7 +124,7 @@ void ehist::actionBeforeDraw()
   hist -> SetStats(fSetStats);
 }
 
-void ehist::setTitle(TString val, int ttlIndex)
+void ehist::getTitles(TString &ttlm, TString &ttlx, TString &ttly, TString &ttlz)
 {
   TString ttl0 = fTitle;
   TString ttls[4] = {"","","",""};
@@ -112,8 +144,23 @@ void ehist::setTitle(TString val, int ttlIndex)
     }
   }
 
-  ttls[ttlIndex] = val;
-  fTitle = ttls[0] + ";" + ttls[1] + ";" + ttls[2] + ";" + ttls[3];
+  ttlm = ttls[0];
+  ttlx = ttls[1];
+  ttly = ttls[2];
+  ttlz = ttls[3];
+}
+
+void ehist::setTitle(TString val, int ttlIndex)
+{
+  TString ttlm, ttlx, ttly, ttlz;
+  getTitles(ttlm, ttlx, ttly, ttlz);
+
+       if (ttlIndex==0) ttlm = val;
+  else if (ttlIndex==1) ttlx = val;
+  else if (ttlIndex==2) ttly = val;
+  else if (ttlIndex==3) ttlz = val;
+
+  fTitle = ttlm + ";" + ttlx + ";" + ttly + ";" + ttlz;
 }
 
 TH1 *ehist::make(TTree *tree)
@@ -121,10 +168,12 @@ TH1 *ehist::make(TTree *tree)
   TH1 *hist = nullptr;
   auto name = getNewHistName();
 
-  if (fBinnx.isNull()) fBinnx.make(tree,fName);
+  if (fBinnx.isNull()) fBinnx.make(tree,fExpression);
 
-  if (fBinny.isNull()) hist = new TH1D(name,fTitle,fBinnx.getN(),fBinnx.getMin(),fBinnx.getMax());
-  else                 hist = new TH2D(name,fTitle,fBinnx.getN(),fBinnx.getMin(),fBinnx.getMax(),fBinny.getN(),fBinny.getMin(),fBinny.getMax());
+  fHistIs2D = fBinny.isNull() ? false : true;
+
+  if (fHistIs2D) hist = new TH2D(name,fTitle,fBinnx.getN(),fBinnx.getMin(),fBinnx.getMax(),fBinny.getN(),fBinny.getMin(),fBinny.getMax());
+  else           hist = new TH1D(name,fTitle,fBinnx.getN(),fBinnx.getMin(),fBinnx.getMax());
 
   if (tree!=nullptr) {
     TString exprFinal = fExpression;
@@ -135,8 +184,9 @@ TH1 *ehist::make(TTree *tree)
       }
     }
     tree -> Project(name,exprFinal,fSelection);
-    if (fBinny.isNull())
-      fBinny.set(1, hist->GetMinimum(), hist->GetMaximum());
+
+    if (!fHistIs2D)
+      fBinny.set(0, hist->GetMinimum(), hist->GetMaximum());
   }
 
   fHistArray.Add(hist);

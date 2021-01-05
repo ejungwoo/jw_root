@@ -34,12 +34,14 @@ class eoption : public TObjArray
     int fFoundIndex = -1;
 
   private:
-    void configureOptions();
+    void configureOptions(TString val);
 
   public: 
     eoption(const char *val="");
 
-    bool    findOption(TString opt);
+    void    addOption(TString val);
+    bool    findOption(TString val);
+
     TString getData()               const;
     int     getNumOptions()         const;
     TString getOption(int idx=-1)   const;

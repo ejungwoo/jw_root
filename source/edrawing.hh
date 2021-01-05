@@ -21,7 +21,7 @@ class edrawing : public TNamed
     double fY2Range = -999;
     TString fDrawOption;
 
-    bool fAddToLegend = true;
+    bool fAddToLegend = false;
     bool fFindRange = true;
     bool fApplyAttributes = true;
 

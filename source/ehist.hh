@@ -18,6 +18,8 @@ class ehist : public edrawing
     ebinning  fBinny;
     TObjArray fHistArray;
 
+    bool fHistIs2D = false;
+
     double fParameters[10] = {0};
 
     double fXTitleOffset = 1.3;
@@ -41,6 +43,7 @@ class ehist : public edrawing
   public:
     ehist(TH1 *hist, const char *option);
     ehist(const char *name, const char *ttl, const char *expr, const char *sel, ebinning binnx, ebinning binny, const char *opt);
+    ehist(ehist *hist1, ehist *hist2);
 
     ehist(const char *name, const char *ttl, const char *expr, const char *sel, int nx, double x1, double x2, int ny, double y1, double y2, const char *opt="")
     : ehist(name, ttl, expr, sel, ebinning(nx,x1,x2), ebinning(ny,y1,y2), opt) {}
@@ -69,14 +72,16 @@ class ehist : public edrawing
 
     TString  getName()       const { return fName; }
     TString  getExpression() const { return fExpression; }
-    TCut     getCut()        const { return fSelection; }
+    TCut     getSelection()  const { return fSelection; }
     TString  getTitle()      const { return fTitle; }
     ebinning getBinnx()      const { return fBinnx; }
     ebinning getBinny()      const { return fBinny; }
 
+    void getTitles(TString &ttlm, TString &ttlx, TString &ttly, TString &ttlz);
+
     void setName       (TString  val) { fName = val; }
     void setExpression (TString  val) { fExpression = val; }
-    void setCut        (TCut     val) { fSelection = val; }
+    void setSelection  (TCut     val) { fSelection = val; }
     void setTitle      (TString  val) { fTitle = val; }
     void setBinnx      (ebinning val) { fBinnx = val; }
     void setBinny      (ebinning val) { fBinny = val; }

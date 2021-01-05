@@ -35,8 +35,7 @@ void edrawing::setOption(TString option)
 
 void edrawing::addOption(TString option)
 {
-  option = fOptionString.getData() + "," + option;
-  fOptionString = eoption(option);
+  fOptionString.addOption(option);
   configureBasicOption();
   configureDrawOption();
 }
