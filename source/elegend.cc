@@ -1,5 +1,6 @@
 #include "KBGlobal.hh"
 #include "elegend.hh"
+#include "ecanvas.hh"
 #include "TPad.h"
 #include "TLegendEntry.h"
 #include <iostream>
@@ -17,7 +18,12 @@ elegend::elegend(TObject *obj, TString option)
 void elegend::add(TObject *entry, TString name, TString option)
 {
   auto legend = (TLegend *) fObject;
-  legend -> AddEntry(entry, name, option);
+  if (entry->InheritsFrom(edrawing::Class())) {
+    auto drawing = (edrawing *) entry;
+    drawing -> addToLegend(legend);
+  }
+  else
+    legend -> AddEntry(entry, name, option);
 }
 
 void elegend::setLegendAlign(int val) { fLegendAlign = val; }
@@ -33,25 +39,35 @@ void elegend::configureParameters() {
   //fLegendHeightPerEntry = man -> fLegendHeightPerEntry;
 }
 
-void elegend::configureBasicOption() {}
+void elegend::configureBasicOption()
+{
+  /**/ if (fOptionString.findOption("legendRT"))  fLegendAlign = 88;
+  else if (fOptionString.findOption("legendLT"))  fLegendAlign = 8;
+  else if (fOptionString.findOption("legendLB"))  fLegendAlign = 0;
+  else if (fOptionString.findOption("legendRB"))  fLegendAlign = 80;
+  else if (fOptionString.findOption("legendRRT")) fLegendAlign = 98;
+  else if (fOptionString.findOption("legendRRB")) fLegendAlign = 90;
+}
 void elegend::configureDrawOption() {}
 void elegend::configureRange() { fFindRange = false; }
 
 void elegend::configureAttributes() {
-  auto legend = (TLegend *) fObject;
+  auto legend = getLegend();
   legend -> SetX1(0.60);
   legend -> SetX2(1.-fRMargin);
   legend -> SetY1(0.7);
   legend -> SetY2(1.-fTMargin);
   legend -> SetFillStyle(0);
 }
-void elegend::actionBeforeDraw() { findLegendSizeAndPosition(); }
+void elegend::preDraw() { 
+  findLegendSizeAndPosition(); }
 
 void elegend::findLegendSizeAndPosition()
 {
   TPad *cvs = nullptr;
-  //if (fParentECanvas!=nullptr)
+  if (fParentECanvas!=nullptr)
     //cvs = fParentECanvas -> getCanvas();
+    cvs = fParentECanvas -> getPad();
 
   auto legend = (TLegend *) fObject;
 
@@ -90,6 +106,8 @@ void elegend::findLegendSizeAndPosition()
   legend -> SetFillStyle(fFillStyleLegend);
   legend -> SetBorderSize(fBorderSizeLegend);
 
-  //kb_debug << x1Legend + fXOffset*xUnit << " " << x2Legend + fXOffset*xUnit << " " << y1Legend + fYOffset*yUnit << " " << y2Legend + fYOffset*yUnit
+  //kb_debug << legend -> GetNRows()
+  //  << " " << x1Legend + fXOffset*xUnit << " " << x2Legend + fXOffset*xUnit
+  //  << " " << y1Legend + fYOffset*yUnit << " " << y2Legend + fYOffset*yUnit
   //  << " " << fFillStyleLegend << " " << fBorderSizeLegend << endl;
 }

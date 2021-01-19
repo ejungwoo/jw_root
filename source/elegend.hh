@@ -20,8 +20,11 @@ class elegend : public edrawing
 
   public:
     elegend(TObject *obj=nullptr, TString option="");
+    elegend(TString option) : elegend((TObject *) nullptr, option) {}
 
-    void add(TObject *entry, TString name, TString option);
+    TLegend *getLegend() const { return (TLegend *) fObject; }
+
+    void add(TObject *entry, TString name="", TString option="");
 
     void setLegendAlign(int val);
     void setLegendOffset(double xOffset, double yOffset);
@@ -33,8 +36,7 @@ class elegend : public edrawing
     virtual void configureRange();
     virtual void configureAttributes();
 
-    virtual void actionBeforeDraw();
-    virtual void actionAfterDraw() {}
+    virtual void preDraw();
 
     ClassDef(elegend,0)
 };

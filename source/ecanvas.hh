@@ -4,31 +4,37 @@
 #include "TObjArray.h"
 #include "TCanvas.h"
 #include "TPad.h"
+#include "TTree.h"
 
 #include "ehist.hh"
 #include "edrawing.hh"
 
-class ecanvas : public TObjArray
+class ecanvas : public edrawing
 {
   private:
-    ecanvas *fParentECanvas = nullptr;
-    int fCurrentDaughterIndex = 0;
-    int fNumDaughters = 0;
+    int        fCurrentDaughterIndex = 0;
     TObjArray *fDaughterECanvasArray = nullptr;
-    TPad *fPad = nullptr;
-    edrawing *fFrame = nullptr;
+    TObjArray *fDrawingArray = nullptr;
+    ehist     *fEHistMain = nullptr;
 
-    int fLegendAlign = 88;
     bool fGridX = 0;
     bool fGridY = 0;
     bool fLogX = 0;
     bool fLogY = 0;
     bool fLogZ = 0;
+
+    bool fSetStats = false;
+
     double fLMargin = 0.19;
     double fRMargin = 0.155;
     double fBMargin = 0.17;
-    //double fTMargin = 0.18;
     double fTMargin = 0.10;
+
+    int  fPadSizeSingleX = 600;
+    int  fPadSizeSingleY = 500;
+    int  fPadSizeMaxX = 10000;
+    int  fPadSizeMaxY = 10000;
+    bool fFixPadSize = false;
 
     int fNumDivXY[81][2] = {
       {1,1},{1,1},{2,1},{3,1},
@@ -51,27 +57,46 @@ class ecanvas : public TObjArray
     ecanvas(const char *name="");
     ecanvas(TPad *pad);
 
-    edrawing *addDrawing (int idxPad, TObject *obj, TString option="", bool isFrame=false);
+    void init();
 
+    ehist *histNext(const char *name, const char *ttl, const char *expr, const char *sel, int nx, double x1, double x2, int ny, double y1, double y2, const char *opt="");
+    ehist *histNext(const char *name, const char *ttl, const char *expr, const char *sel, int nx, double x1, double x2, const char *opt="");
+
+    ehist *histSame(const char *name, const char *ttl, const char *expr, const char *sel, int nx, double x1, double x2, int ny, double y1, double y2, const char *opt="");
+    ehist *histSame(const char *name, const char *ttl, const char *expr, const char *sel, int nx, double x1, double x2, const char *opt="");
+
+    edrawing *addDrawing (int idxPad, TObject *obj, TString option="", bool isFrame=false);
     edrawing *addFrame   (int idxPad, TObject *obj, TString option="") { return addDrawing(idxPad, obj, option, true); }
     edrawing *add        (int idxPad, TObject *obj, TString option="") { return addDrawing(idxPad, obj, option, false); }
-
     edrawing *addFrame   (TObject *obj, TString option="") { return addFrame( 0,obj,    option); }
     edrawing *add        (TObject *obj, TString option="") { return add     ( 0,obj,    option); }
-    edrawing *addsame    (TObject *obj, TString option="") { return add     (-1,obj,    option); }
-    edrawing *addnext    (TObject *obj, TString option="") { return add     (-2,obj,    option); }
+    edrawing *addSame    (TObject *obj, TString option="") { return add     (-1,obj,    option); }
+    edrawing *addNext    (TObject *obj, TString option="") { return add     (-2,obj,    option); }
+    edrawing *addToAll   (TObject *obj, TString option="") { return add     (-9,obj,    option); }
 
-    TPad *draw(TPad *pad=nullptr);
+    virtual void setTag(const char *tag);
+
+    void make(TTree *tree=nullptr);
+
+    void draw(TPad *pad=nullptr);
+    void draw(TTree *tree);
+
+    virtual void setPar(const char *name, double val);
+    virtual void setPar(const char *name, const char *val);
 
   public:
     void setParentCanvas(ecanvas *ecvs) { fParentECanvas = ecvs; }
     ecanvas *setParentCanvas() { return fParentECanvas; }
-    TPad *getCanvas() { return fPad; }
+    TPad *getPad() { return (TPad *) fObject; }
 
   public:
-    void setPadMargin(int option);
+    //void setPadMargin(int option);
     void setPadMargin(double lMargin, double rMargin, double bMargin, double tMargin);
     void applyPadMargin(TPad *pad=nullptr);
+
+    void setPadSizeFull(int dx, int dy, bool fixSize=false);
+    void setPadSizeSingle(int dx, int dy=0, bool fixSize=false);
+    void setPadSizeMax(int xmax, int ymax=0, bool fixSize=false);
 
     void setPad(TPad *pad);
     void getNextPadInfo(int numPads, int &numDivX, int &numDivY, int &padSizeX, int &padSizeY);
@@ -79,6 +104,10 @@ class ecanvas : public TObjArray
     edrawing *getFrame();
 
     virtual const char *print(bool printout=true) const;
+    void printDrawings() const;
+
+    edrawing *getDrawing(int i) const { return (edrawing *) fDrawingArray -> At(i); }
+    int getNumDrawings() const { return fDrawingArray -> GetEntriesFast(); }
 
   private:
     edrawing *makeDrawing (TObject *obj, TString option);
@@ -87,7 +116,7 @@ class ecanvas : public TObjArray
     void setRMarginForLegend(double dxLegend);
     void setTMarginForLegend(double dyLegend);
 
-    static int fIndexCanvas;
+    TString configureNewName();
 
     ClassDef(ecanvas,0)
 };

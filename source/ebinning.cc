@@ -56,7 +56,25 @@ void ebinning::set(double n, double min, double max)
 
 TString ebinning::print(bool pout) const
 {
-  TString line = Form("(%d,%f,%f;%f)",fN,fMin,fMax,fW);
+  auto rm0 = [](TString vstring) {
+    auto posdot = vstring.Index(".");
+    auto poslast = vstring.Sizeof()-2;
+    auto lstring = TString(vstring(poslast));
+    if (posdot>=0&&posdot<poslast)
+      while (lstring=="0") {
+        vstring.Remove(poslast);
+        poslast = vstring.Sizeof()-2;
+        lstring = TString(vstring(poslast));
+      }
+    return vstring;
+  };
+
+  TString minString = rm0(Form("%f",fMin));
+  TString maxString = rm0(Form("%f",fMax));
+  TString wString = rm0(Form("%f",fW));
+
+  //TString line = Form("(%d,%s,%s;%s)",fN,minString.Data(),maxString.Data(),wString.Data());
+  TString line = Form("%d,%s,%s",fN,minString.Data(),maxString.Data());
   if (pout)
     cout_info << line << endl;
   return line;

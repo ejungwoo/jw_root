@@ -38,22 +38,31 @@ class eoption : public TObjArray
 
   public: 
     eoption(const char *val="");
+    void clear();
+    const char *print(bool printout=true) const;
 
-    void    addOption(TString val);
-    bool    findOption(TString val);
+    void setOption(TString val);
+
+    bool findOption(TString val);
 
     TString getData()               const;
     int     getNumOptions()         const;
     TString getOption(int idx=-1)   const;
+
+    TString getValue (TString val)   const;
+    bool    getValueB(TString val)   const;
+    int     getValueI(TString val)   const;
+    double  getValueD(TString val)   const;
+
     TString getValue (int idx=-1)   const;
     bool    getValueB(int idx=-1)   const;
     int     getValueI(int idx=-1)   const;
     double  getValueD(int idx=-1)   const;
+
     TString getDrawOption()         const;
 
+    void addDrawOption(TString opt);
     void setDrawOption(TString opt);
-
-    const char *print(bool printout=true) const;
 
     //void operator=(const char *val);
 

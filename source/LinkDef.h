@@ -9,6 +9,7 @@
 #pragma link C++ class eoption+;
 #pragma link C++ class elegend+;
 #pragma link C++ class ehist+;
+#pragma link C++ class efunc+;
 #pragma link C++ class ecanvas+;
 
 #endif
